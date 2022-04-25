@@ -2,6 +2,7 @@ import os.path
 import youtube_dl
 
 from scipy.io import wavfile
+import numpy as np
 
 EXT = 'wav'
 FNAME = 'data/%(id)s.%(ext)s'
@@ -15,26 +16,35 @@ OPTS = {
     }],
 }
 
+
 def get_f_name(vid):
     return FNAME % {'id': vid, 'ext': EXT}
 
 def download_data(vid):
     with youtube_dl.YoutubeDL(OPTS) as ydl:
         data = ydl.extract_info(f'https://www.youtube.com/watch?v={vid}', download=True)
-        print(data)
+
+# Quick wrapper
+class AudioData:
+    def __init__(self, vid):
+        self.vid, self.f_name = vid, get_f_name(vid)
+
+        # Download if not exists
+        if not os.path.exists(self.f_name):
+            download_data(self.vid)
+
+        # And get .wav file
+        self.reload()
+
+    def reload(self):
+        self.fs, self.data = wavfile.read(self.f_name)
+        self.dt = 1/self.fs
+
+        self.n = self.data.shape[0]
+        self.time = np.arange(0, self.n/self.fs, self.dt)
 
 def load_data(vids):
-    data = {}
-    for vid in vids:
-        f_name = get_f_name(vid)
-        if not os.path.exists(f_name):
-            download_data(vid)
-    
-        # And get data directly from .wav
-        _, data = wavfile.read(f_name)
-        data[vid] = data
-
-    return data
+    return [AudioData(vid) for vid in vids]
 
 if __name__ == '__main__':
     vids = ['ugJ-rYS-9JU']
