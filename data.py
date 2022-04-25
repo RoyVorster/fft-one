@@ -16,7 +16,6 @@ OPTS = {
     }],
 }
 
-
 def get_f_name(vid):
     return FNAME % {'id': vid, 'ext': EXT}
 
@@ -45,8 +44,4 @@ class AudioData:
 
 def load_data(vids):
     return [AudioData(vid) for vid in vids]
-
-if __name__ == '__main__':
-    vids = ['ugJ-rYS-9JU']
-    load_data(vids)
 
